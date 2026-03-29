@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Квест «Мой первый пай» — мобильная версия</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --primary: #1f4bb8;
+      --primary-light: #3f6ee0;
+      --accent: #ffb74d;
+      --text: #111827;
+      --muted: #6b7280;
+      --card-bg: #ffffff;
+      --correct: #16a34a;
+      --wrong: #dc2626;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 16px 12px 24px;
+    }
+    @media (min-width: 600px) {
+      .app { padding: 20px 16px 28px; }
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .title-block h1 {
+      font-size: 1.2rem;
+      margin-bottom: 2px;
+      color: var(--primary);
+    }
+    .title-block p {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #e0ebff;
+      color: var(--primary);
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .screen { display: none; }
+    .screen.active { display: block; }
+    .card {
+      background: var(--card-bg);
+      border-radius: 18px;
+      padding: 14px 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
+    }
+    .card h2 { font-size: 1rem; margin-bottom: 8px; }
+    .card p { font-size: 0.9rem; color: var(--muted); }
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+      justify-content: center;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #fff;
+    }
+    .btn-secondary { background: #e5e7eb; color: #111827; }
+    .btn-link {
+      background: transparent;
+      color: var(--muted);
+      box-shadow: none;
+      padding-inline: 0;
+      width: auto;
+    }
+    .btn-option {
+      justify-content: flex-start;
+      margin-bottom: 10px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+      border: 2px solid transparent;
+      padding: 10px 10px;
+      font-weight: 500;
+    }
+    .btn-option span.label {
+      display: inline-flex;
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      background: #e5e7eb;
+      color: #374151;
+      flex-shrink: 0;
+    }
+    .btn-option span.text { font-size: 0.95rem; color: var(--text); text-align: left; }
+    .btn-option.correct { border-color: var(--correct); background: #ecfdf3; }
+    .btn-option.wrong { border-color: var(--wrong); background: #fef2f2; }
+    .btn-option.disabled { opacity: 0.9; }
+    .btn-option.correct span.label { background: var(--correct); color: #fff; }
+    .btn-option.wrong span.label { background: var(--wrong); color: #fff; }
+    .question-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      gap: 8px;
+    }
+    .progress-bar-wrap {
+      flex: 1;
+      height: 6px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      overflow: hidden;
+    }
+    .progress-bar-inner {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transition: width 0.25s ease;
+    }
+    .explanation {
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .explanation strong { color: var(--primary); }
+    .footer {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .footer button { flex: 1; }
+    .footer .btn-link { flex: 0 0 auto; }
+    .score-big {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+    .result-text { font-size: 0.9rem; color: var(--muted); margin-bottom: 12px; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-size: 0.7rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="title-block">
+      <h1>Квест‑игра «Мой первый пай»</h1>
+      <p>Профориентационный блок от компании «Современные фонды недвижимости» (СФН).</p>
+    </div>
+    <div class="badge">ЗПИФ недвижимости</div>
+  </div>
+
+  <div id="screen-start" class="screen active">
+    <div class="card">
+      <h2>Миллиардер с 6 рублей</h2>
+      <p>
+        Пройди короткий квест из 7 вопросов и разберись, как работают закрытые паевые инвестиционные фонды (ЗПИФы),
+        чем они отличаются от вклада и как студент может стать совладельцем реальных зданий.
+      </p>
+    </div>
+    <div class="card">
+      <p style="font-size:0.85rem; color:var(--muted); margin-bottom:10px;">
+        На каждом шаге выбирай один из четырёх вариантов. После ответа ты увидишь пояснение —
+        запомни его, в конце будет главный вывод.
+      </p>
+      <button class="btn-primary" onclick="startQuiz()">Начать квест</button>
+    </div>
+  </div>
+
+  <div id="screen-question" class="screen">
+    <div class="question-meta">
+      <span id="question-counter"></span>
+      <div class="progress-bar-wrap">
+        <div id="progress-bar" class="progress-bar-inner"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 id="question-text"></h2>
+    </div>
+
+    <div id="options-container"></div>
+
+    <div id="explanation" class="explanation" style="display:none;"></div>
+
+    <div class="footer">
+      <button class="btn-secondary" onclick="prevQuestion()" id="btn-prev" style="visibility:hidden;">Назад</button>
+      <button class="btn-primary" onclick="nextQuestion()" id="btn-next" disabled>Дальше</button>
+    </div>
+  </div>
+
+  <div id="screen-end" class="screen">
+    <div class="card">
+      <div class="pill">Итоги квеста</div>
+      <div class="score-big" id="final-score"></div>
+      <div class="result-text" id="final-text"></div>
+    </div>
+    <div class="card">
+      <h2>Главный вывод</h2>
+      <p>
+        Современные фонды недвижимости собирают деньги многих инвесторов и покупают крупные объекты:
+        торговые центры, бизнес‑центры, склады. Даже с небольшой суммой, вроде 6 ₽, можно юридически
+        владеть долей в таком фонде — а значит, и долей в этих зданиях.
+      </p>
+      <p style="margin-top:8px;">
+        На дистанции нескольких лет доходность пая может сравняться или обогнать вклад, при этом
+        за фондом стоит не просто «цифра в приложении», а реальная недвижимость.
+      </p>
+    </div>
+    <div class="footer">
+      <button class="btn-secondary" onclick="restartQuiz()">Пройти ещё раз</button>
+      <button class="btn-link" onclick="shareResult()">Поделиться</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const quizData = [
+    {
+      question: "Минимальный порог входа в недвижимость — 6 рублей. Какой механизм лучше всего объясняет, как это возможно юридически?",
+      options: [
+        "Покупка «сертификата участия» без статуса пая, который даёт право только на часть арендного дохода, но не на имущество",
+        "Оформление займа фонду на 6 ₽ с правом требовать эквивалентную долю в его активах",
+        "Покупка пая закрытого паевого фонда (ЗПИФ) СФН, где пай дробится на очень маленькие доли стоимости",
+        "Покупка микродоли конкретного помещения по договору долевой собственности с ТЦ"
+      ],
+      correctIndex: 2,
+      explanation: "Инструмент, который позволяет зайти с минимальной суммы и при этом действительно владеть частью имущества фонда — пай ЗПИФа. Остальные механики либо не дают права на имущество, либо юридически некорректны."
+    },
+    {
+      question: "Какое описание точнее всего отражает роль «Современных Фонд Недвижимости» в сделке?",
+      options: [
+        "Государственный оператор, который распределяет бюджетные деньги между строящимися объектами",
+        "Девелопер, который за свои деньги строит объекты и потом продаёт их инвесторам",
+        "Брокер, который подбирает клиентам отдельные квартиры и статьи договора аренды",
+        "Управляющая компания, которая собирает средства многих инвесторов в ЗПИФ и от имени фонда покупает и управляет коммерческими объектами"
+      ],
+      correctIndex: 3,
+      explanation: "СФН выступает как управляющая компания ЗПИФов: аккумулирует средства пайщиков и управляет портфелем коммерческой недвижимости от имени фонда."
+    },
+    {
+      question: "У ЗПИФа под управлением СФН СЧА около 100 млрд ₽. Какой портфель по структуре наиболее реалистичен для такого фонда?",
+      options: [
+        "Только малоэтажные жилые дома эконом‑класса в одном регионе, купленные для перепродажи",
+        "Один флагманский торговый центр и несколько элитных квартир в центре столицы",
+        "Преимущественно незастроенные земельные участки, купленные «впрок» без действующих арендаторов",
+        "Набор из торговых центров, бизнес‑центров и логистических комплексов в разных городах, часть объектов в управлении напрямую, часть — через СПВ‑компании"
+      ],
+      correctIndex: 3,
+      explanation: "Для СЧА порядка 100 млрд ₽ типичен диверсифицированный портфель из нескольких коммерческих объектов разных типов и в разных регионах, часто с использованием СПВ‑структур."
+    },
+    {
+      question: "Студент купил пай ЗПИФа на 6 ₽. Как наиболее корректно описать его права?",
+      options: [
+        "Он не связан с имуществом фонда, а имеет только право на фиксированную процентную ставку по договору займа",
+        "Он получает только моральное право называться совладельцем, юридически это нигде не закреплено",
+        "Он получает право собственности на конкретное помещение площадью, пропорциональной 6 ₽",
+        "Он становится владельцем доли в общем имуществе фонда, а сами объекты недвижимости учитываются на балансе фонда/СПВ"
+      ],
+      correctIndex: 3,
+      explanation: "Пай даёт право на долю в общем имуществе фонда, а не в конкретном квадратном метре. Само имущество учитывается на балансе фонда или специальных компаний."
+    },
+    {
+      question: "СЧА фонда за 3 года выросли с 60 до 100 млрд ₽. Какое объяснение этого роста на уровне механики ближе всего к реальности?",
+      options: [
+        "Фонд увеличил СЧА только за счёт выпуска новых паёв, при этом структура недвижимости и её рыночная стоимость не изменились",
+        "Фонд просто провёл переоценку по инфляции, не меняя ни состав, ни качество портфеля",
+        "Фонд сократил число объектов, но переложился из недвижимости в высокодоходные банковские депозиты",
+        "Фонд реинвестировал часть арендного потока в покупку новых объектов, а существующие активы дополнительно подорожали на рынке"
+      ],
+      correctIndex: 3,
+      explanation: "Рост СЧА обычно связан с реинвестированием дохода в новые объекты и переоценкой уже имеющихся активов, а не только с выпуском паёв или инфляцией."
+    },
+    {
+      question: "Доходность пая за 1 год — +8,66%, за 2 года — +16,17%, за 3 года — +19,82%. Средняя ставка по вкладу — около 18% годовых с ежегодной капитализацией. Какое сравнение инструментов будет наиболее корректным?",
+      options: [
+        "Считать, что вклад всегда выгоднее, потому что номинальная ставка за год выше, а долгий горизонт роли не играет",
+        "Делать вывод по максимальному значению: раз у ЗПИФа за 3 года 19,82%, значит он в любом случае доминирует над вкладом по доходности и рискам",
+        "Сопоставлять эффективную доходность на сопоставимом горизонте (2–3 года), учитывая налоговый режим, риск‑профиль и то, что ЗПИФ инвестирует в недвижимость, а вклад — в обязательства банка",
+        "Сравнивать только первый год: вклад даёт около 18%, значит ЗПИФ проигрывает и дальше обсуждать нечего"
+      ],
+      correctIndex: 2,
+      explanation: "Корректное сравнение требует смотреть на эффективную доходность за один и тот же горизонт, учитывать налоги и различие по рискам между вкладом и фондом недвижимости."
+    },
+    {
+      question: "После квеста тебя спрашивают: «Почему вообще имеет смысл смотреть на ЗПИФы, если есть вклады и акции?». Какой ответ будет самым взвешенным?",
+      options: [
+        "Потому что ЗПИФы гарантируют доходность выше вкладов и акций при любом сценарии рынка",
+        "Потому что ЗПИФы — это более безопасная версия акций: та же волатильность, но без риска потерь",
+        "Потому что ЗПИФы позволяют с небольшой суммы участвовать в арендном потоке крупной коммерческой недвижимости, диверсифицируя портфель и потенциально обгоняя вклад на горизонте нескольких лет",
+        "Потому что ЗПИФы подходят только тем, кто уже владеет несколькими объектами напрямую и хочет «добить портфель до красоты»"
+      ],
+      correctIndex: 2,
+      explanation: "ЗПИФы интересны тем, что дают доступ к коммерческой недвижимости с небольшой суммы и работают как диверсифицирующий элемент портфеля, но не являются безрисковой заменой вкладов или акций."
+    }
+  ];
+
+
+  let currentIndex = 0;
+  let score = 0;
+  let answered = Array(quizData.length).fill(null);
+
+  const screenStart = document.getElementById("screen-start");
+  const screenQuestion = document.getElementById("screen-question");
+  const screenEnd = document.getElementById("screen-end");
+  const questionCounter = document.getElementById("question-counter");
+  const progressBar = document.getElementById("progress-bar");
+  const questionText = document.getElementById("question-text");
+  const optionsContainer = document.getElementById("options-container");
+  const explanationEl = document.getElementById("explanation");
+  const btnPrev = document.getElementById("btn-prev");
+  const btnNext = document.getElementById("btn-next");
+  const finalScore = document.getElementById("final-score");
+  const finalText = document.getElementById("final-text");
+
+  function showScreen(name) {
+    [screenStart, screenQuestion, screenEnd].forEach(s => s.classList.remove("active"));
+    if (name === "start") screenStart.classList.add("active");
+    if (name === "question") screenQuestion.classList.add("active");
+    if (name === "end") screenEnd.classList.add("active");
+    window.scrollTo(0, 0);
+  }
+
+  function startQuiz() {
+    currentIndex = 0;
+    score = 0;
+    answered = Array(quizData.length).fill(null);
+    showScreen("question");
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const q = quizData[currentIndex];
+    questionText.textContent = q.question;
+    questionCounter.textContent = `Вопрос ${currentIndex + 1} из ${quizData.length}`;
+    progressBar.style.width = `${((currentIndex) / quizData.length) * 100}%`;
+
+    optionsContainer.innerHTML = "";
+    explanationEl.style.display = "none";
+    explanationEl.textContent = "";
+    btnNext.disabled = answered[currentIndex] === null;
+
+    btnPrev.style.visibility = currentIndex === 0 ? "hidden" : "visible";
+    btnNext.textContent = currentIndex === quizData.length - 1 ? "Завершить" : "Дальше";
+
+    q.options.forEach((opt, idx) => {
+      const btn = document.createElement("button");
+      btn.className = "btn-option";
+      const label = document.createElement("span");
+      label.className = "label";
+      label.textContent = String.fromCharCode(1040 + idx); // А, Б, В, Г
+      const text = document.createElement("span");
+      text.className = "text";
+      text.textContent = opt;
+      btn.appendChild(label);
+      btn.appendChild(text);
+
+      btn.addEventListener("click", () => handleAnswer(idx));
+      optionsContainer.appendChild(btn);
+    });
+
+    if (answered[currentIndex] !== null) {
+      applyAnswerState();
+    }
+  }
+
+  function handleAnswer(selectedIdx) {
+    if (answered[currentIndex] !== null) return;
+    answered[currentIndex] = selectedIdx;
+    const q = quizData[currentIndex];
+    if (selectedIdx === q.correctIndex) score++;
+    applyAnswerState();
+  }
+
+  function applyAnswerState() {
+    const q = quizData[currentIndex];
+    const buttons = optionsContainer.querySelectorAll(".btn-option");
+    buttons.forEach((btn, idx) => {
+      btn.classList.add("disabled");
+      if (idx === q.correctIndex) btn.classList.add("correct");
+      if (answered[currentIndex] !== q.correctIndex && idx === answered[currentIndex]) {
+        btn.classList.add("wrong");
+      }
+    });
+    explanationEl.style.display = "block";
+    explanationEl.innerHTML = `<strong>Почему так:</strong> ${q.explanation}`;
+    btnNext.disabled = false;
+    progressBar.style.width = `${((currentIndex + 1) / quizData.length) * 100}%`;
+  }
+
+  function nextQuestion() {
+    if (currentIndex === quizData.length - 1) {
+      finishQuiz();
+    } else {
+      currentIndex++;
+      renderQuestion();
+      window.scrollTo(0, 0);
+    }
+  }
+
+  function prevQuestion() {
+    if (currentIndex > 0) {
+      currentIndex--;
+      renderQuestion();
+      window.scrollTo(0, 0);
+    }
+  }
+
+  function finishQuiz() {
+    showScreen("end");
+    const total = quizData.length;
+    finalScore.textContent = `${score} из ${total}`;
+    const ratio = score / total;
+    let text;
+    if (ratio === 1) {
+      text = "Идеально! Ты разбираешься в ЗПИФах лучше среднего инвестора и точно понимаешь, как из 6 ₽ сделать долю в большом здании.";
+    } else if (ratio >= 0.7) {
+      text = "Отличный результат. Ты хорошо понимаешь логику фондов недвижимости и можешь осознанно выбирать между вкладом и инвестфондом.";
+    } else if (ratio >= 0.4) {
+      text = "Неплохо как старт. Ты ухватил базу, но есть смысл пересмотреть пояснения к вопросам — там зашита суть инструмента.";
+    } else {
+      text = "Это только начало. Зато теперь у тебя есть базовое представление о ЗПИФах, и можно задать вопросы спикерам на мероприятии.";
+    }
+    finalText.textContent = text;
+  }
+
+  function restartQuiz() { startQuiz(); }
+
+  function shareResult() {
+    const text = `Я прошёл(а) квест «Мой первый пай» от СФН и набрал(а) ${score} из ${quizData.length}. Теперь знаю, как с 6 ₽ владеть долей в торговом центре через ЗПИФ.`;
+    if (navigator.share) {
+      navigator.share({ title: "Квест «Мой первый пай»", text });
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Текст результата скопирован. Можно вставить в соцсети.");
+      });
+    } else {
+      alert(text);
+    }
+  }
+</script>
+</body>
+</html>
